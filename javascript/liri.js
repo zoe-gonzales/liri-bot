@@ -1,12 +1,17 @@
 
-// require("dotenv").config();
+// require("dotenv").config({path: '../.env'});
+var dotenv = require('dotenv');
+dotenv.config({path: '../.env'});
 
 // Saved keys
-// var keys = require("./keys.js");
+var keys = require("../keys.js");
+// console.log(keys.spotify);
 var fs = require('fs');
-
+var axios = require('axios');
+var moment = require('moment');
+var Spotify = require('node-spotify-api');
 // Spotify key
-// var spotify = new Spotify(keys.spotify);
+var spotify = new Spotify(keys);
 
 // saving first parameter as variable
 var params = process.argv;
@@ -57,6 +62,7 @@ function getConcert() {
         // Liri's reply
         console.log(`Excellent choice! I, too, love ${artist.trim()}.`);
         console.log('Some info about concerts for that artist.');
+        
         // axios call to BandsInTown API
         // render:
             // Name of Venue
@@ -64,13 +70,11 @@ function getConcert() {
             // Date of the event (using Moment in MM/DD/YYYY format)
 
         // adds input to log.txt
-        fs.appendFile('log.txt', ', ' + artist.trim(), function(err){
+        fs.appendFile('../text/log.txt', ', ' + artist.trim(), function(err){
 
             if (err) {
                 console.log(err);
             }
-
-            console.log('file successfully appended');
         });
 
         
@@ -88,22 +92,33 @@ function getSong() {
     if (song !== undefined) {
         // Liri's reply
         console.log(`${song.trim()} is one of the greatest songs of our time.`);
-        console.log("Here's some stuff about your selected song.");
-        // axios call to Spotify API
-        // render:
-            // Artist name
+        console.log("Here's some stuff about your selected song.");        
+        // call to Spotify API
+        spotify.search({type: 'track', query: song})
+        .then(function(response) {
             // Song name
-            // A preview link of the song from Spotify
+            console.log(`Title: ${response.tracks.items[0].name}`);
+            // Artist name
+            console.log(`Artist: ${response.tracks.items[0].album.artists[0].name}`);
+            // Release date
+            if (response.tracks.items[0].album.release_date !== undefined) {
+                console.log(`Released: ${response.tracks.items[0].album.release_date}`);
+            }
             // Album that song is from
-
+            console.log(`Album: ${response.tracks.items[0].album.name}`);
+            // A preview link of the song from Spotify
+            console.log(`URL: ${response.tracks.items[0].album.artists[0].external_urls.spotify}`);
+          })
+          .catch(function(err) {
+            console.log(err);
+          });
+          
         // adds input to log.txt
-        fs.appendFile('log.txt', ', ' + song.trim(), function(err){
+        fs.appendFile('../text/log.txt', ', ' + song.trim(), function(err){
 
             if (err) {
                 console.log(err);
             }
-
-            console.log('file successfully appended');
         });
 
     } else { 
@@ -133,13 +148,11 @@ function getMovie() {
             // actors in movie
 
         // adds input to log.txt
-        fs.appendFile('log.txt', ', ' + movie.trim(), function(err){
+        fs.appendFile('../text/log.txt', ', ' + movie.trim(), function(err){
 
             if (err) {
                 console.log(err);
             }
-
-            console.log('file successfully appended');
         });
     
     } else {
@@ -152,7 +165,7 @@ function getMovie() {
 function random() {
     console.log('You choose randomly.');
     // using fs package, call spotify-this-song on data in random.txt
-    fs.readFile('random.txt', 'utf8', function(err, data) {
+    fs.readFile('../text/random.txt', 'utf8', function(err, data) {
 
         if (err) {
             console.log(err);
