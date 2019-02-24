@@ -1,5 +1,4 @@
 
-// require("dotenv").config({path: '../.env'});
 var dotenv = require('dotenv');
 dotenv.config({path: '../.env'});
 
@@ -9,18 +8,14 @@ var keys = require("../keys.js");
 var fs = require('fs');
 var axios = require('axios');
 var moment = require('moment');
+var inquirer = require('inquirer');
 var Spotify = require('node-spotify-api');
 // Spotify key
 var spotify = new Spotify(keys);
 
-// saving first parameter as variable
-var params = process.argv;
+// saving parameters as variable
 var request = process.argv[2];
-var input = '';
-
-for (var i=3; i < params.length; i++) {
-    input += process.argv[i] + ' ';
-}
+var input = process.argv.slice(3).join(' ');
 
 function liri() {
     // Switch statement identifies request, determines action to be taken
@@ -50,9 +45,7 @@ function liri() {
     }
 }
 
-
 // FUNCTIONS
-
 // Function called when concert-this is the parameter
 function getConcert() {
     // takes in artist's name as parameter
@@ -60,14 +53,34 @@ function getConcert() {
     // if a parameter is NOT undefined 
     if (artist !== undefined) {
         // Liri's reply
-        console.log(`Excellent choice! I, too, love ${artist.trim()}.`);
-        console.log('Some info about concerts for that artist.');
-        
+        console.log(`\nHere is the info you requested for ${artist}:`);
         // axios call to BandsInTown API
-        // render:
-            // Name of Venue
-            // Venue location
-            // Date of the event (using Moment in MM/DD/YYYY format)
+        axios.get(`https://rest.bandsintown.com/artists/${artist}/events?app_id=codingbootcamp`)
+        .then(function(response){
+            var concerts = response.data;
+            concerts.forEach(concert => {
+                // Name of Venue
+                console.log(`\n${concert.lineup[0]} at ${concert.venue.name}`);
+                // Venue location
+                if (concert.venue.region) {
+                    // For locations in US
+                    console.log(`Location: ${concert.venue.city}, ${concert.venue.region}`);
+                } else {
+                    // International locations do not provide a region, so using country instead
+                    console.log(`Location: ${concert.venue.city}, ${concert.venue.country}`);
+                }
+                // Date of the event (using Moment in MM/DD/YYYY format)
+                var date = moment(concert.datetime).format('MMM D YYYY h:mm a');
+                console.log(`Date & Time (local): ${date}`);
+                // Link to event
+                console.log(`More info: ${concert.url}\n`);
+            });
+        })
+        .catch(function(error){
+            console.log(`Error: ${error}`);
+        });
+            
+            
 
         // adds input to log.txt
         fs.appendFile('../text/log.txt', ', ' + artist.trim(), function(err){
@@ -91,8 +104,7 @@ function getSong() {
     // if parameter is entered
     if (song !== undefined) {
         // Liri's reply
-        console.log(`${song.trim()} is one of the greatest songs of our time.`);
-        console.log("Here's some stuff about your selected song.");        
+        console.log(`Here is info you requested about ${song.trim()}:`);        
         // call to Spotify API
         spotify.search({type: 'track', query: song})
         .then(function(response) {
