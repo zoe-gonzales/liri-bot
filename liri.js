@@ -98,36 +98,55 @@ function getConcert() {
     axios.get(queryURL)
     .then(function(response){
         var concerts = response.data;
+        if (!input) {
+            console.log(`\nHere are some upcoming concerts for Unknown Mortal Orchestra:\n`);
+        } else {
+            console.log(`\nHere are some upcoming concerts for ${input}:\n`);
+        }
         concerts.forEach(concert => {
-            console.log(`\nHere are some upcoming concerts for ${concert.lineup[0]}:`);
+            var artist = concert.lineup[0];
+            var headline = `${artist} at ${concert.venue.name}`;
+            var url = concert.url;
             // Name of Venue
-            console.log(`\n${concert.lineup[0]} at ${concert.venue.name}`);
+            console.log(headline);
             // Venue location
+            var location = '';
             if (concert.venue.region) {
                 // For locations in US
-                console.log(`Location: ${concert.venue.city}, ${concert.venue.region}`);
+                location = `Location: ${concert.venue.city} ~ ${concert.venue.region}`;
+                console.log(location);
             } else {
                 // International locations do not provide a region, so using country instead
-                console.log(`Location: ${concert.venue.city}, ${concert.venue.country}`);
+                location = `Location: ${concert.venue.city}, ${concert.venue.country}`;
+                console.log(location);
             }
             // Date of the event (using Moment in MM/DD/YYYY format)
             var date = moment(concert.datetime).format('MMM D YYYY h:mm a');
             console.log(`Date & Time (local): ${date}`);
             // Link to event
-            console.log(`More info: ${concert.url}\n`);
+            console.log(`${url}\n`);
+
+            var concertDetails = [];
+            concertDetails.push(artist);
+            concertDetails.push(headline);
+            concertDetails.push(location);
+            concertDetails.push(date);
+            concertDetails.push(`${url}\n`);
+
+            // adds output to log.txt
+            fs.appendFile('text/log.txt', ', ' + concertDetails, function(err){
+
+                if (err) {
+                    console.log(err);
+                }
+            });
         });
     })
     .catch(function(error){
         console.log(`Error: ${error}`);
     });  
 
-    // adds input to log.txt
-    fs.appendFile('text/log.txt', ', ' + input, function(err){
-
-        if (err) {
-            console.log(err);
-        }
-    });
+    
 }
     
 // Calls to Spotify API, displays data, and appends data to log.txt
@@ -143,27 +162,27 @@ function getSong() {
     .then(function(response) {
 
         var title = response.tracks.items[0].name;
-        var artist = response.tracks.items[0].album.artists[0].name;
+        var artist = `Artist: ${response.tracks.items[0].album.artists[0].name}`;
         var releaseDate = response.tracks.items[0].album.release_date;
-        var album = response.tracks.items[0].album.name;
-        var url = response.tracks.items[0].album.artists[0].external_urls.spotify;
+        var album = `Album: ${response.tracks.items[0].album.name}`;
+        var url = `URL: ${response.tracks.items[0].album.artists[0].external_urls.spotify}`;
 
         console.log(`\nHere is some info about ${title}:\n`);   
         // Song name
         console.log(`Title: ${title}`);
         // Artist name
-        console.log(`Artist: ${artist}`);
+        console.log(artist);
         // Release date
         if (releaseDate !== undefined) {
             var released = moment(releaseDate).format('MMM D YYYY');
             console.log(`Released: ${released}`);
         }
         // Album that song is from
-        console.log(`Album: ${album}`);
+        console.log(album);
         // A preview link of the song from Spotify
-        console.log(`URL: ${url}\n`);
+        console.log(`${url}\n`);
 
-        var songDetails = [title, artist, releaseDate, album, url];
+        var songDetails = [title, artist, `Released: ${released}`, album, url];
         // adds input to log.txt
         fs.appendFile('text/log.txt', ',' + songDetails, function(err){
 
@@ -190,37 +209,50 @@ function getMovie() {
     // axios call to OMDB API
     axios.get(queryURL)
     .then(function(response){
-        console.log(`\nHere are some details for ${response.data.Title}:\n`);
+        var title = response.data.Title;
+        var year = `Released in: ${response.data.Year}`;
+        var director = `Directed by: ${response.data.Director}`;
+        var imdb = `${response.data.Ratings[0].Source} rating: ${response.data.Ratings[0].Value}`;
+        var rottenTomato = `${response.data.Ratings[1].Source} rating: ${response.data.Ratings[1].Value}`;
+        var country = `Produced in: ${response.data.Country}`;
+        var language = `Language(s): ${response.data.Language}`;
+        var plot = `Plot: ${response.data.Plot}`;
+        var actors = `Featuring: ${response.data.Actors}\n`;
+
+        console.log(`\nHere are some details for ${title}:\n`);
         // Title
-        console.log(`Movie title: ${response.data.Title}`);
+        console.log(`Movie title: ${title}`);
         // Release year
-        console.log(`Released in: ${response.data.Year}`);
+        console.log(year);
         // Director
-        console.log(`Directed by: ${response.data.Director}`);
+        console.log(director);
         // IMDB Rating
-        console.log(`${response.data.Ratings[0].Source} rating: ${response.data.Ratings[0].Value}`);
+        console.log(imdb);
         // Rotten tomatoes rating
-        console.log(`${response.data.Ratings[1].Source} rating: ${response.data.Ratings[1].Value}`);
+        console.log(rottenTomato);
         // Country where movie was produced
-        console.log(`Produced in: ${response.data.Country}`);
+        console.log(country);
         // language of movie
-        console.log(`Language(s): ${response.data.Language}`);
+        console.log(language);
         // plot of movie
-        console.log(`Plot: ${response.data.Plot}`);
+        console.log(plot);
         // actors in movie
-        console.log(`Featuring: ${response.data.Actors}\n`);
+        console.log(actors);
+
+        var movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
+        // adds output to log.txt
+        fs.appendFile('text/log.txt', ',' + movieDetails, function(err){
+
+            if (err) {
+                console.log(err);
+            }
+        });
     })
     .catch(function(err){
         console.log(`Error: ${err}`);
     });  
 
-    // adds input to log.txt
-    fs.appendFile('text/log.txt', ', ' + input, function(err){
-
-        if (err) {
-            console.log(err);
-        }
-    });
+    
 }
     
 // Reads data from random.txt and displays info using this data as input
