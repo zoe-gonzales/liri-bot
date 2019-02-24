@@ -7,6 +7,7 @@ var fs = require('fs');
 var axios = require('axios');
 var moment = require('moment');
 var inquirer = require('inquirer');
+var colors = require('colors');
 var Spotify = require('node-spotify-api');
 
 // Spotify keys
@@ -99,32 +100,32 @@ function getConcert() {
     .then(function(response){
         var concerts = response.data;
         if (!input) {
-            console.log(`\nHere are some upcoming concerts for Unknown Mortal Orchestra:\n`);
+            console.log(`\nHere are some upcoming concerts for Unknown Mortal Orchestra:\n`.magenta);
         } else {
-            console.log(`\nHere are some upcoming concerts for ${input}:\n`);
+            console.log(`\nHere are some upcoming concerts for ${input}:\n`.magenta);
         }
         concerts.forEach(concert => {
             var artist = concert.lineup[0];
             var headline = `${artist} at ${concert.venue.name}`;
             var url = concert.url;
             // Name of Venue
-            console.log(headline);
+            console.log(headline.green);
             // Venue location
             var location = '';
             if (concert.venue.region) {
                 // For locations in US
                 location = `Location: ${concert.venue.city} ~ ${concert.venue.region}`;
-                console.log(location);
+                console.log(location.cyan);
             } else {
                 // International locations do not provide a region, so using country instead
                 location = `Location: ${concert.venue.city}, ${concert.venue.country}`;
-                console.log(location);
+                console.log(location.cyan);
             }
             // Date of the event (using Moment in MM/DD/YYYY format)
             var date = moment(concert.datetime).format('MMM D YYYY h:mm a');
-            console.log(`Date & Time (local): ${date}`);
+            console.log(`Date & Time (local): ${date}`.cyan);
             // Link to event
-            console.log(`${url}\n`);
+            console.log(`${url}\n`.cyan);
 
             var concertDetails = [];
             concertDetails.push(artist);
@@ -167,20 +168,20 @@ function getSong() {
         var album = `Album: ${response.tracks.items[0].album.name}`;
         var url = `URL: ${response.tracks.items[0].album.artists[0].external_urls.spotify}`;
 
-        console.log(`\nHere is some info about ${title}:\n`);   
+        console.log(`\nHere is some info about ${title}:\n`.magenta);   
         // Song name
-        console.log(`Title: ${title}`);
+        console.log(`Title: ${title}`.cyan);
         // Artist name
-        console.log(artist);
+        console.log(artist.cyan);
         // Release date
         if (releaseDate !== undefined) {
             var released = moment(releaseDate).format('MMM D YYYY');
-            console.log(`Released: ${released}`);
+            console.log(`Released: ${released}`.cyan);
         }
         // Album that song is from
-        console.log(album);
+        console.log(album.cyan);
         // A preview link of the song from Spotify
-        console.log(`${url}\n`);
+        console.log(`${url}\n`.cyan);
 
         var songDetails = [title, artist, `Released: ${released}`, album, url];
         // adds input to log.txt
@@ -219,25 +220,25 @@ function getMovie() {
         var plot = `Plot: ${response.data.Plot}`;
         var actors = `Featuring: ${response.data.Actors}\n`;
 
-        console.log(`\nHere are some details for ${title}:\n`);
+        console.log(`\nHere are some details for ${title}:\n`.magenta);
         // Title
-        console.log(`Movie title: ${title}`);
+        console.log(`Movie title: ${title}`.cyan);
         // Release year
-        console.log(year);
+        console.log(year.cyan);
         // Director
-        console.log(director);
+        console.log(director.cyan);
         // IMDB Rating
-        console.log(imdb);
+        console.log(imdb.cyan);
         // Rotten tomatoes rating
-        console.log(rottenTomato);
+        console.log(rottenTomato.cyan);
         // Country where movie was produced
-        console.log(country);
+        console.log(country.cyan);
         // language of movie
-        console.log(language);
+        console.log(language.cyan);
         // plot of movie
-        console.log(plot);
+        console.log(plot.cyan);
         // actors in movie
-        console.log(actors);
+        console.log(actors.cyan);
 
         var movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
         // adds output to log.txt
@@ -266,9 +267,20 @@ function random() {
 
         // save data to array split on the ,'s
         var dataArr = data.split(',');
-        request = dataArr[0];
-        input = dataArr[1];
-        // rerun liri
+        // Generates random number that will identify the index of the request
+        var randomNumIndex = Math.floor(Math.random() * 5);
+        // Accounts for odd indexes (since these contain values rather than commands)
+        if (randomNumIndex % 2 !== 0 && randomNumIndex !== 4) {
+            randomNumIndex++;
+        }
+        // Loops through data array and identifies the item in the array whose index matches the random index
+        for (var i=0; i < dataArr.length; i++) {
+            if (i === randomNumIndex) {
+                request = dataArr[i];
+                input = dataArr[i + 1];
+            }
+        }
+        // Reruns Liri with the values from random.txt
         liri();
     })
 
@@ -283,11 +295,11 @@ function getData() {
         }
 
         if (!data) {
-            console.log('\nSorry, no data could be found.\n');
+            console.log('\nSorry, no data could be found.\n'.magenta);
         } else {
-            console.log('\nHere is your requested data:\n');
+            console.log('\nHere is your requested data:\n'.magenta);
             var dataArr = data.split(',');
-            dataArr.forEach(item => console.log(item));
+            dataArr.forEach(item => console.log(item.yellow));
         }
     });
 }
