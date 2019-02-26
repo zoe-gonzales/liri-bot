@@ -30,9 +30,7 @@ inquirer
     request = inquirerResponse.request;
     if (request === 'concert-this' || request === 'spotify-this-song' || request === 'movie-this') {
         promptSearchTerm();
-    } else {
-        liri();
-    }
+    } else liri();
 });
 
 // Runs only if user selects to search concerts, songs, or movies - prompts for search term
@@ -91,9 +89,7 @@ function getConcert() {
     var queryURL = `https://rest.bandsintown.com/artists/${input}/events?app_id=codingbootcamp`;
 
     // Conditional controls for if there is no user input
-    if (!input) {
-        queryURL = `https://rest.bandsintown.com/artists/unknown+mortal+orchestra/events?app_id=codingbootcamp`;
-    }
+    if (!input) queryURL = `https://rest.bandsintown.com/artists/unknown+mortal+orchestra/events?app_id=codingbootcamp`;
 
     // axios call to BandsInTown API
     axios.get(queryURL)
@@ -136,27 +132,20 @@ function getConcert() {
 
             // adds output to log.txt
             fs.appendFile('text/log.txt', ', ' + concertDetails, function(err){
-
-                if (err) {
-                    console.log(err);
-                }
+                if (err) console.log(err); // checking for error
             });
         });
     })
     .catch(function(error){
         console.log(`Error: ${error}`);
-    });  
-
-    
+    });   
 }
     
 // Calls to Spotify API, displays data, and appends data to log.txt
 function getSong() {
-   
+
     // Conditional controls for if there is no user input
-    if (!input) {
-        input = 'No Scrubs';
-    }
+    if (!input) input = 'No Scrubs';
 
     // call to Spotify API
     spotify.search({type: 'track', query: input})
@@ -184,17 +173,14 @@ function getSong() {
         console.log(`${url}\n`.cyan);
 
         var songDetails = [title, artist, `Released: ${released}`, album, url];
+        
         // adds input to log.txt
         fs.appendFile('text/log.txt', ',' + songDetails, function(err){
-
-            if (err) {
-                console.log(err);
-            }
-
+            if (err) console.log(err); // checking for error
         });
         })
         .catch(function(err) {
-        console.log(err);
+            console.log(err);
         });
 }
      
@@ -202,14 +188,13 @@ function getSong() {
 function getMovie() {
 
     var queryURL = `http://www.omdbapi.com/?apikey=trilogy&t=${input}`;
-
     // Conditional controls for if there is no user input
-    if (!input) {
-        queryURL = "http://www.omdbapi.com/?apikey=trilogy&t=am%C3%A9lie";
-    }
+    if (!input) queryURL = "http://www.omdbapi.com/?apikey=trilogy&t=am%C3%A9lie";
+    
     // axios call to OMDB API
     axios.get(queryURL)
     .then(function(response){
+
         var title = response.data.Title;
         var year = `Released in: ${response.data.Year}`;
         var director = `Directed by: ${response.data.Director}`;
@@ -243,28 +228,19 @@ function getMovie() {
         var movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
         // adds output to log.txt
         fs.appendFile('text/log.txt', ',' + movieDetails, function(err){
-
-            if (err) {
-                console.log(err);
-            }
+            if (err) console.log(err); // checking for error
         });
     })
     .catch(function(err){
         console.log(`Error: ${err}`);
-    });  
-
-    
+    });   
 }
     
 // Reads data from random.txt and displays info using this data as input
 function random() {
     // using fs package, call spotify-this-song on data in random.txt
     fs.readFile('text/random.txt', 'utf8', function(err, data) {
-
-        if (err) {
-            console.log(err);
-        }
-
+        if (err) console.log(err); // checking for error
         // save data to array split on the ,'s
         var dataArr = data.split(',');
         // Generates random number that will identify the index of the request
@@ -282,18 +258,13 @@ function random() {
         }
         // Reruns Liri with the values from random.txt
         liri();
-    })
-
+    });
 }
 
 // Retrieves and displays all data saved in log.txt
 function getData() {
     fs.readFile('text/log.txt', 'utf8', function(err, data){
-
-        if (err) {
-            console.log(err);
-        }
-
+        if (err) console.log(err); // checking for error
         if (!data) {
             console.log('\nSorry, no data could be found.\n'.magenta);
         } else {

@@ -23,7 +23,7 @@ BandsInTown, Spotify, OMDB
 * Select one of the items in the menu to get data from liri
 
 ### concert-this
-* Once selected, enter an artist and press ` enter `. If nothing is entered, liri will return concerts for Jamiroquai.
+* Once selected, enter an artist and press ` enter `. If nothing is entered, liri will return concerts for Unknown Mortal Orchestra.
 * Call to the BandsInTown API will return details about upcoming concerts such as: artist, venue, location (city, state within US; city, country outside US), date/time, and a link to the event's page on bandsintown.com.
 
 ![liri-bot concert-this request](gifs/concert.gif)
