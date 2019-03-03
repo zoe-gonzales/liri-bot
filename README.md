@@ -3,7 +3,7 @@
 ## Summary
 Liri-bot is a CLI app created in Node that takes in user input (musical artists, songs, and movie titles) and returns information about each of those inputs. 
 
-Liri also translates to and from English for the following supported languages: Arabic, Czech, Danish, German, Spanish, Finnish, French, Hindi, Italian, Japanese, Korean, Norwegian Bokmål, Dutch, Polish, Portuguese, Russian, Swedish, Turkish, Simplified Chinese, Traditional Chinese
+Liri also translates to and from English for the following supported languages: Arabic, Czech, Danish, Dutch, Finnish, French, German, Hindi, Italian, Japanese, Korean, Norwegian Bokmal, Polish, Portuguese, Russian, Simplified Chinese, Spanish, Swedish, Traditional Chinese, Turkish
 
 ### Node packages used
 dotenv, axios, moment, inquirer, colors, owl-wisdom, spotify-node-api, watson-developer-cloud
@@ -14,7 +14,7 @@ BandsInTown, Spotify, OMDB, Watson Language Translator
 ### How to install
 * Open terminal or git bash and clone this repository to the directory of your choice
 * Enter ` npm install ` or ` npm i ` to install the node packages needed to run the app
-* **Note:** A local .env file containing the credentials for the Spotify API and Watson Language Translator APIs will need to be provided. Spotify id and secret can be obtained [here](https://developer.spotify.com/) and credentials for WLT are found [here](https://www.ibm.com/watson/services/language-translator/).
+* **Note:** A local .env file containing the credentials for the Spotify and Watson Language Translator APIs will need to be provided. Spotify id and secret can be obtained [here](https://developer.spotify.com/) and credentials for WLT are available through a free IBM Cloud account [here](https://www.ibm.com/watson/services/language-translator/).
 
 ### How to use
 * Once you have the necessary files to run liri-bot, enter ` node liri `
@@ -22,11 +22,11 @@ BandsInTown, Spotify, OMDB, Watson Language Translator
 
 ![liri-bot menu](gifs/menu.png)
 
-* Select one of the items in the menu to get data from liri
+* Select one of the items in the menu to get data from liri.
 
 ### concert-this
 * Once selected, enter an artist and press ` enter `. If nothing is entered, liri will return concerts for Unknown Mortal Orchestra.
-* Call to the BandsInTown API will return details about upcoming concerts such as: artist, venue, location (city, state within US; city, country outside US), date/time, and a link to the event's page on bandsintown.com.
+* Call to the BandsInTown API will return details about upcoming concerts such as: artist, venue, location (city, state within US; city, country outside US), local date/time, and a link to the event's page on bandsintown.com.
 
 ![liri-bot concert-this request](gifs/concert.gif)
 
