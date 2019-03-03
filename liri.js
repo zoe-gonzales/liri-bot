@@ -11,7 +11,50 @@ var colors = require('colors');
 var Spotify = require('node-spotify-api');
 
 // Spotify keys
-var spotify = new Spotify(keys);
+var spotify = new Spotify(keys.spotify);
+
+var LanguageTranslatorV3 = require('watson-developer-cloud/language-translator/v3');
+var languageTranslator = new LanguageTranslatorV3(keys.translator);
+
+var supportedLanguages = ['Arabic', 'Czech', 'Danish', 'German', 'Spanish', 'Finnish', 'French', 'Hindi', 'Italian', 'Japanese', 'Korean', 'Norwegian Bokmal', 'Dutch', 'Polish', 'Portuguese', 'Russian', 'Swedish', 'Turkish', 'Simplified Chinese', 'Traditional Chinese'];
+
+var supportedLanguageCodes = ['ar', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hi', 'it', 'ja', 'ko', 'nb', 'nl', 'pl', 'pt', 'ru', 'sv', 'tr', 'zh', 'zh-TW'];
+
+// functions working with watson language translator
+// pulls info on language codes for comparison with user input
+function findLangCode(language) {
+    var langFromCode = '';
+    var langIndex = '';
+    for (var i=0; i < supportedLanguages.length; i++) {
+        if (supportedLanguages[i] === language) {
+        langFromCode = supportedLanguageCodes[i];
+        }
+    }
+    if (!supportedLanguages.includes(language)) {
+    console.log('Sorry, that language is not supported. Please double check that you have correctly spelled the requested language. Some languages require a full name, ex: "Norweigan Bokmål."');
+    }
+    return langFromCode;
+}
+
+function translate(string, one, two) {
+    var parameters = {
+        text: string,
+        model_id: `${one}-${two}`
+        };
+
+    languageTranslator.translate(
+    parameters,
+    function(error, response) {
+        if (error) {
+        console.log(error);
+        } else {
+        response.translations.forEach(text => {
+            console.log(text.translation);
+        });
+        } 
+    }
+    );
+}
 
 // User input is saved to global variables
 var request = '';
@@ -23,13 +66,15 @@ inquirer
     {
         type: 'list',
         message: 'Hi! My name is Liri. Please choose one of the following:',
-        choices: ['concert-this', 'spotify-this-song', 'movie-this', 'do-what-it-says', 'info-saved', 'get-random-quote'],
+        choices: ['concert-this', 'spotify-this-song', 'movie-this', 'do-what-it-says', 'info-saved', 'get-random-quote', 'translate-this'],
         name: 'request'
     }]
 ).then(function(inquirerResponse) {
     request = inquirerResponse.request;
     if (request === 'concert-this' || request === 'spotify-this-song' || request === 'movie-this') {
         promptSearchTerm();
+    } else if (request === 'translate-this') {
+        getTranslation();
     } else liri();
 });
 
@@ -76,6 +121,9 @@ function liri() {
         // return random quote
         case 'get-random-quote':
             getQuote();
+        break;
+        case 'translate-this':
+            getTranslation();
         break;
         default:
             return;
@@ -240,7 +288,7 @@ function getMovie() {
 function random() {
     // using fs package, call spotify-this-song on data in random.txt
     fs.readFile('text/random.txt', 'utf8', function(err, data) {
-        if (err) console.log(err); // checking for error
+        if (err) throw err; // checking for error
         // save data to array split on the ,'s
         var dataArr = data.split(',');
         // Generates random number that will identify the index of the request
@@ -264,7 +312,7 @@ function random() {
 // Retrieves and displays all data saved in log.txt
 function getData() {
     fs.readFile('text/log.txt', 'utf8', function(err, data){
-        if (err) console.log(err); // checking for error
+        if (err) throw err;
         if (!data) {
             console.log('\nSorry, no data could be found.\n'.magenta);
         } else {
@@ -278,4 +326,67 @@ function getData() {
 // Generates random quote
 function getQuote() {
     require('owl-wisdom');
+}
+
+// Translation logic
+function getTranslation() {
+    var text = '';
+    var language = '';
+
+    inquirer
+    .prompt({
+        type: 'confirm',
+        message: 'Translate from English?',
+        default: true,
+        name: 'english'
+    }).then(function(reply){
+        if (reply.english) {
+            inquirer
+            .prompt([
+                {
+                    name: 'text',
+                    message: 'Text to translate:'
+                },
+                {
+                    type: 'list',
+                    message: 'Select the language you want to translate to:',
+                    choices: supportedLanguages,
+                    name: 'language'
+                }, 
+            ]).then(function(reply){
+                var text = reply.text;
+                var language = reply.language;
+                var langOne = 'en';
+                var langTwo = findLangCode(language);
+                translate(text, langOne, langTwo);
+            });
+        } else {
+            inquirer
+            .prompt([
+                {
+                    type: 'list',
+                    message: 'Select the language you want to translate from:',
+                    choices: supportedLanguages,
+                    name: 'langOne'
+                },
+                {
+                    name: 'text',
+                    message: 'Text to translate:'
+                },
+                {
+                    type: 'list',
+                    message: 'Select the language you want to translate to:',
+                    choices: supportedLanguages,
+                    name: 'langTwo'
+                }, 
+            ]).then(function(reply){
+                promise.then(function() {
+                    var text = reply.text;
+                    var langOne = findLangCode(reply.langOne);
+                    var langTwo = findLangCode(reply.langTwo);
+                    translate(text, langOne, langTwo);
+                }).catch(message => console.log(message));  
+            });
+        }
+    }); 
 }
