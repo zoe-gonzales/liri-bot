@@ -18,17 +18,19 @@ var spotify = new Spotify(keys.spotify);
 var LanguageTranslatorV3 = require('watson-developer-cloud/language-translator/v3');
 var languageTranslator = new LanguageTranslatorV3(keys.translator);
 
-// Array based on the languages supported for translation with english
-var supportedLanguages = ['Arabic', 'Czech', 'Danish', 'German', 'Spanish', 'Finnish', 'French', 'Hindi', 'Italian', 'Japanese', 'Korean', 'Norwegian Bokmal', 'Dutch', 'Polish', 'Portuguese', 'Russian', 'Swedish', 'Turkish', 'Simplified Chinese', 'Traditional Chinese'];
+// Array holds the languages supported for translation to and from English
+var supportedLanguages = ['Arabic', 'Czech', 'Danish', 'Dutch', 'Finnish', 'French', 'German', 'Hindi', 'Italian', 'Japanese', 'Korean', 'Norwegian Bokmal', 'Polish', 'Portuguese', 'Russian', 'Simplified Chinese', 'Spanish', 'Swedish', 'Traditional Chinese', 'Turkish'];
 
-// Language codes
-var supportedLanguageCodes = ['ar', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hi', 'it', 'ja', 'ko', 'nb', 'nl', 'pl', 'pt', 'ru', 'sv', 'tr', 'zh', 'zh-TW'];
+// Supported language codes (ordered in respect to supportedLanguages)
+var supportedLanguageCodes = ['ar', 'cs', 'da', 'nl', 'fi', 'fr', 'de', 'hi', 'it', 'ja', 'ko', 'nb', 'pl', 'pt', 'ru', 'zh', 'es', 'sv', 'zh-TW', 'tr'];
 
 // Determines the code of a language based on the user's selection
 function findLangCode(language) {
+    // loops through array until the selected language is found
     for (var i=0; i < supportedLanguages.length; i++) {
         if (supportedLanguages[i] === language) {
-        var langFromCode = supportedLanguageCodes[i];
+            // assigns exact index to supportedLanguageCodes since both arrays are in the same order
+            var langFromCode = supportedLanguageCodes[i];
         }
     }
     return langFromCode;
@@ -36,26 +38,30 @@ function findLangCode(language) {
 
 // Handles the translation functionality - calls to API and displays response in CL
 function translate(string, one, two) {
+    // Parameters to be passed through translate functionality below
+    // supported translation models here: https://console.bluemix.net/docs/services/language-translator/translation-models.html#translation-models
     var parameters = {
         text: string,
         model_id: `${one}-${two}`
         };
 
+    // call to WLT applying the parameters gained from user input
     languageTranslator.translate(
-    parameters,
-    function(error, response) {
-        if (error) {
-        console.log(error);
-        } else {
-        response.translations.forEach(text => {
-            console.log(text.translation.cyan);
-            // Saving translation to log.txt
-            fs.appendFile('text/log.txt', ',' + text.translation, function(err){
-                if (err) console.log(err);
+        parameters,
+        function(error, response) {
+            if (error) {
+            console.log(error);
+            } else {
+                // loops through response array in case there is more than one translation
+                response.translations.forEach(text => {
+                console.log(text.translation.cyan);
+                // Saving translation to log.txt
+                fs.appendFile('text/log.txt', ',' + text.translation, function(err){
+                    if (err) console.log(err);
+                });
             });
-        });
-        } 
-    }
+            } 
+        }
     );
 }
 //  ==============================================================================
@@ -176,6 +182,7 @@ function getConcert() {
             // Link to event
             console.log(`${url}\n`.cyan);
 
+            // Placing values into array for addition to log.txt
             var concertDetails = [];
             concertDetails.push(artist);
             concertDetails.push(headline);
@@ -185,7 +192,7 @@ function getConcert() {
 
             // adds output to log.txt
             fs.appendFile('text/log.txt', ', ' + concertDetails, function(err){
-                if (err) console.log(err); // checking for error
+                if (err) console.log(err);
             });
         });
     })
@@ -225,11 +232,12 @@ function getSong() {
         // A preview link of the song from Spotify
         console.log(`${url}\n`.cyan);
 
+        // Array contents to be added to log.txt
         var songDetails = [title, artist, `Released: ${released}`, album, url];
         
         // adds input to log.txt
         fs.appendFile('text/log.txt', ',' + songDetails, function(err){
-            if (err) console.log(err); // checking for error
+            if (err) console.log(err);
         });
         })
         .catch(function(err) {
@@ -277,11 +285,11 @@ function getMovie() {
         console.log(plot.cyan);
         // actors in movie
         console.log(actors.cyan);
-
+        // Array to be added to log.txt
         var movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
         // adds output to log.txt
         fs.appendFile('text/log.txt', ',' + movieDetails, function(err){
-            if (err) console.log(err); // checking for error
+            if (err) console.log(err);
         });
     })
     .catch(function(err){
@@ -357,7 +365,7 @@ function getTranslation() {
                     name: 'language'
                 }, 
             ]).then(function(reply){
-                // sets arguments for translate() to the input - gets code for language to translate to
+                // sets arguments for translate() to the input - gets WLT code for language to translate to
                 var langOne = 'en';
                 var langTwo = findLangCode(reply.language);
                 translate(reply.text, langOne, langTwo);
