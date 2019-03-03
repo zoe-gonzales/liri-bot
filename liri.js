@@ -48,7 +48,8 @@ function translate(string, one, two) {
         console.log(error);
         } else {
         response.translations.forEach(text => {
-            console.log(text.translation);
+            console.log(text.translation.cyan);
+            // Saving translation to log.txt
             fs.appendFile('text/log.txt', ',' + text.translation, function(err){
                 if (err) console.log(err);
             });
@@ -334,6 +335,7 @@ function getQuote() {
 
 // Translates input
 function getTranslation() {
+    // prompts whether user wants to translate to or from english
     inquirer
     .prompt({
         type: 'list',
@@ -355,6 +357,7 @@ function getTranslation() {
                     name: 'language'
                 }, 
             ]).then(function(reply){
+                // sets arguments for translate() to the input - gets code for language to translate to
                 var langOne = 'en';
                 var langTwo = findLangCode(reply.language);
                 translate(reply.text, langOne, langTwo);
@@ -373,6 +376,7 @@ function getTranslation() {
                     message: 'Text to translate:'
                 },
             ]).then(function(reply){
+                // sets arguments for translate() to the input - gets code for language to translate from
                 var langOne = findLangCode(reply.langOne);
                 var langTwo = 'en';
                 translate(reply.text, langOne, langTwo);
