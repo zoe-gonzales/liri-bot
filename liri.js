@@ -13,29 +13,28 @@ var Spotify = require('node-spotify-api');
 // Spotify keys
 var spotify = new Spotify(keys.spotify);
 
+//  ==============================================================================
+// Code for handling watson language translator data
 var LanguageTranslatorV3 = require('watson-developer-cloud/language-translator/v3');
 var languageTranslator = new LanguageTranslatorV3(keys.translator);
 
+// Array based on the languages supported for translation with english
 var supportedLanguages = ['Arabic', 'Czech', 'Danish', 'German', 'Spanish', 'Finnish', 'French', 'Hindi', 'Italian', 'Japanese', 'Korean', 'Norwegian Bokmal', 'Dutch', 'Polish', 'Portuguese', 'Russian', 'Swedish', 'Turkish', 'Simplified Chinese', 'Traditional Chinese'];
 
+// Language codes
 var supportedLanguageCodes = ['ar', 'cs', 'da', 'de', 'es', 'fi', 'fr', 'hi', 'it', 'ja', 'ko', 'nb', 'nl', 'pl', 'pt', 'ru', 'sv', 'tr', 'zh', 'zh-TW'];
 
-// functions working with watson language translator
-// pulls info on language codes for comparison with user input
+// Determines the code of a language based on the user's selection
 function findLangCode(language) {
-    var langFromCode = '';
-    var langIndex = '';
     for (var i=0; i < supportedLanguages.length; i++) {
         if (supportedLanguages[i] === language) {
-        langFromCode = supportedLanguageCodes[i];
+        var langFromCode = supportedLanguageCodes[i];
         }
-    }
-    if (!supportedLanguages.includes(language)) {
-    console.log('Sorry, that language is not supported. Please double check that you have correctly spelled the requested language. Some languages require a full name, ex: "Norweigan Bokmål."');
     }
     return langFromCode;
 }
 
+// Handles the translation functionality - calls to API and displays response in CL
 function translate(string, one, two) {
     var parameters = {
         text: string,
@@ -50,15 +49,19 @@ function translate(string, one, two) {
         } else {
         response.translations.forEach(text => {
             console.log(text.translation);
+            fs.appendFile('text/log.txt', ',' + text.translation, function(err){
+                if (err) console.log(err);
+            });
         });
         } 
     }
     );
 }
+//  ==============================================================================
 
 // User input is saved to global variables
-var request = '';
-var input = '';
+var request;
+var input;
 
 // Runs immediately
 inquirer
@@ -122,6 +125,7 @@ function liri() {
         case 'get-random-quote':
             getQuote();
         break;
+        // get translation of input
         case 'translate-this':
             getTranslation();
         break;
@@ -328,19 +332,16 @@ function getQuote() {
     require('owl-wisdom');
 }
 
-// Translation logic
+// Translates input
 function getTranslation() {
-    var text = '';
-    var language = '';
-
     inquirer
     .prompt({
-        type: 'confirm',
-        message: 'Translate from English?',
-        default: true,
-        name: 'english'
+        type: 'list',
+        message: 'Translate:',
+        choices: ['to English', 'from English'],
+        name: 'languageChoice'
     }).then(function(reply){
-        if (reply.english) {
+        if (reply.languageChoice === 'from English') {
             inquirer
             .prompt([
                 {
@@ -354,11 +355,9 @@ function getTranslation() {
                     name: 'language'
                 }, 
             ]).then(function(reply){
-                var text = reply.text;
-                var language = reply.language;
                 var langOne = 'en';
-                var langTwo = findLangCode(language);
-                translate(text, langOne, langTwo);
+                var langTwo = findLangCode(reply.language);
+                translate(reply.text, langOne, langTwo);
             });
         } else {
             inquirer
@@ -373,19 +372,10 @@ function getTranslation() {
                     name: 'text',
                     message: 'Text to translate:'
                 },
-                {
-                    type: 'list',
-                    message: 'Select the language you want to translate to:',
-                    choices: supportedLanguages,
-                    name: 'langTwo'
-                }, 
             ]).then(function(reply){
-                promise.then(function() {
-                    var text = reply.text;
-                    var langOne = findLangCode(reply.langOne);
-                    var langTwo = findLangCode(reply.langTwo);
-                    translate(text, langOne, langTwo);
-                }).catch(message => console.log(message));  
+                var langOne = findLangCode(reply.langOne);
+                var langTwo = 'en';
+                translate(reply.text, langOne, langTwo);
             });
         }
     }); 
