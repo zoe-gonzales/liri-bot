@@ -10,61 +10,11 @@ var inquirer = require('inquirer');
 require('colors');
 var Spotify = require('node-spotify-api');
 
+// requiring Translator constructor
+var Translator = require('./translator');
+
 // Spotify keys
 var spotify = new Spotify(keys.spotify);
-
-//  ==============================================================================
-// Code for handling watson language translator data
-var LanguageTranslatorV3 = require('watson-developer-cloud/language-translator/v3');
-var languageTranslator = new LanguageTranslatorV3(keys.translator);
-
-// Array holds the languages supported for translation to and from English
-var supportedLanguages = ['Arabic', 'Czech', 'Danish', 'Dutch', 'Finnish', 'French', 'German', 'Hindi', 'Italian', 'Japanese', 'Korean', 'Norwegian Bokmal', 'Polish', 'Portuguese', 'Russian', 'Simplified Chinese', 'Spanish', 'Swedish', 'Traditional Chinese', 'Turkish'];
-
-// Supported language codes (ordered in respect to supportedLanguages)
-var supportedLanguageCodes = ['ar', 'cs', 'da', 'nl', 'fi', 'fr', 'de', 'hi', 'it', 'ja', 'ko', 'nb', 'pl', 'pt', 'ru', 'zh', 'es', 'sv', 'zh-TW', 'tr'];
-
-// Determines the code of a language based on the user's selection
-function findLangCode(language) {
-    // loops through array until the selected language is found
-    for (var i=0; i < supportedLanguages.length; i++) {
-        if (supportedLanguages[i] === language) {
-            // assigns exact index to supportedLanguageCodes since both arrays are in the same order
-            var langFromCode = supportedLanguageCodes[i];
-        }
-    }
-    return langFromCode;
-}
-
-// Handles the translation functionality - calls to API and displays response in CL
-function translate(string, one, two) {
-    // Parameters to be passed through translate functionality below
-    // supported translation models here: https://console.bluemix.net/docs/services/language-translator/translation-models.html#translation-models
-    var parameters = {
-        text: string,
-        model_id: `${one}-${two}`
-        };
-
-    // call to WLT applying the parameters gained from user input
-    languageTranslator.translate(
-        parameters,
-        function(error, response) {
-            if (error) {
-            console.log(error);
-            } else {
-                // loops through response array in case there is more than one translation
-                response.translations.forEach(text => {
-                console.log(text.translation.cyan);
-                // Saving translation to log.txt
-                fs.appendFile('text/log.txt', ',' + text.translation, function(err){
-                    if (err) console.log(err);
-                });
-            });
-            } 
-        }
-    );
-}
-//  ==============================================================================
 
 // User input is saved to global variables
 var request;
@@ -343,6 +293,7 @@ function getQuote() {
 
 // Translates input
 function getTranslation() {
+    var translator = new Translator();
     // prompts whether user wants to translate to or from english
     inquirer
     .prompt({
@@ -361,14 +312,14 @@ function getTranslation() {
                 {
                     type: 'list',
                     message: 'Select the language you want to translate to:',
-                    choices: supportedLanguages,
+                    choices: translator.supportedLanguages,
                     name: 'language'
                 }, 
             ]).then(function(reply){
                 // sets arguments for translate() to the input - gets WLT code for language to translate to
                 var langOne = 'en';
-                var langTwo = findLangCode(reply.language);
-                translate(reply.text, langOne, langTwo);
+                var langTwo = translator.findLangCode(reply.language);
+                translator.translate(reply.text, langOne, langTwo);
             });
         } else {
             inquirer
@@ -376,7 +327,7 @@ function getTranslation() {
                 {
                     type: 'list',
                     message: 'Select the language you want to translate from:',
-                    choices: supportedLanguages,
+                    choices: translator.supportedLanguages,
                     name: 'langOne'
                 },
                 {
@@ -385,9 +336,9 @@ function getTranslation() {
                 },
             ]).then(function(reply){
                 // sets arguments for translate() to the input - gets code for language to translate from
-                var langOne = findLangCode(reply.langOne);
+                var langOne = translator.findLangCode(reply.langOne);
                 var langTwo = 'en';
-                translate(reply.text, langOne, langTwo);
+                translator.translate(reply.text, langOne, langTwo);
             });
         }
     }); 
