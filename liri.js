@@ -2,20 +2,16 @@
 // Node package imports
 var dotenv = require('dotenv');
 dotenv.config({path: './.env'});
-var keys = require("./keys.js");
 var fs = require('fs');
 var axios = require('axios');
-var moment = require('moment');
 var inquirer = require('inquirer');
-var Spotify = require('node-spotify-api');
 require('colors');
 
 // requiring constructors
 var Translator = require('./translator');
 var Concerts = require('./concerts');
-
-// Spotify keys
-var spotify = new Spotify(keys.spotify);
+var Song = require('./song');
+var Movie = require('./movie');
 
 // User input is saved to global variables
 var request;
@@ -59,19 +55,20 @@ function promptSearchTerm() {
 function liri() {
     // Switch statement identifies request, determines action to be taken
     switch (request) {
-        // concert-this
         case 'concert-this':
             var concert = new Concerts(input);
             concert.getQueryURL();
             concert.axiosConcerts();
         break;
-        // spotify-this-song
         case 'spotify-this-song':
-            getSong();
+            var song = new Song(input);
+            song.validateInput();
+            song.searchSong();
         break;
-        // movie-this
         case 'movie-this':
-            getMovie();
+            var movie = new Movie(input);
+            movie.validateQueryURL();
+            movie.searchMovie();
         break;
         // do-what-it-says
         case 'do-what-it-says':
@@ -83,7 +80,7 @@ function liri() {
         break;
         // return random quote
         case 'get-random-quote':
-            getQuote();
+            require('owl-wisdom'); // Generates random quote
         break;
         // get translation of input
         case 'translate-this':
@@ -91,103 +88,7 @@ function liri() {
         break;
     }
 }
-    
-// Calls to Spotify API, displays data, and appends data to log.txt
-function getSong() {
-
-    // Conditional controls for if there is no user input
-    if (!input) input = 'No Scrubs';
-
-    // call to Spotify API
-    spotify.search({type: 'track', query: input})
-    .then(function(response) {
-
-        var title = response.tracks.items[0].name;
-        var artist = `Artist: ${response.tracks.items[0].album.artists[0].name}`;
-        var releaseDate = response.tracks.items[0].album.release_date;
-        var album = `Album: ${response.tracks.items[0].album.name}`;
-        var url = `URL: ${response.tracks.items[0].album.artists[0].external_urls.spotify}`;
-
-        console.log(`\nHere is some info about ${title}:\n`.magenta);   
-        // Song name
-        console.log(`Title: ${title}`.cyan);
-        // Artist name
-        console.log(artist.cyan);
-        // Release date
-        if (releaseDate !== undefined) {
-            var released = moment(releaseDate).format('MMM D YYYY');
-            console.log(`Released: ${released}`.cyan);
-        }
-        // Album that song is from
-        console.log(album.cyan);
-        // A preview link of the song from Spotify
-        console.log(`${url}\n`.cyan);
-
-        // Array contents to be added to log.txt
-        var songDetails = [title, artist, `Released: ${released}`, album, url];
-        
-        // adds input to log.txt
-        fs.appendFile('text/log.txt', ',' + songDetails, function(err){
-            if (err) console.log(err);
-        });
-        })
-        .catch(function(err) {
-            console.log(err);
-        });
-}
-     
-// Calls to OMDB API, displays data, and appends data to log.txt
-function getMovie() {
-
-    var queryURL = `http://www.omdbapi.com/?apikey=trilogy&t=${input}`;
-    // Conditional controls for if there is no user input
-    if (!input) queryURL = "http://www.omdbapi.com/?apikey=trilogy&t=am%C3%A9lie";
-    
-    // axios call to OMDB API
-    axios.get(queryURL)
-    .then(function(response){
-
-        var title = response.data.Title;
-        var year = `Released in: ${response.data.Year}`;
-        var director = `Directed by: ${response.data.Director}`;
-        var imdb = `${response.data.Ratings[0].Source} rating: ${response.data.Ratings[0].Value}`;
-        var rottenTomato = `${response.data.Ratings[1].Source} rating: ${response.data.Ratings[1].Value}`;
-        var country = `Produced in: ${response.data.Country}`;
-        var language = `Language(s): ${response.data.Language}`;
-        var plot = `Plot: ${response.data.Plot}`;
-        var actors = `Featuring: ${response.data.Actors}\n`;
-
-        console.log(`\nHere are some details for ${title}:\n`.magenta);
-        // Title
-        console.log(`Movie title: ${title}`.cyan);
-        // Release year
-        console.log(year.cyan);
-        // Director
-        console.log(director.cyan);
-        // IMDB Rating
-        console.log(imdb.cyan);
-        // Rotten tomatoes rating
-        console.log(rottenTomato.cyan);
-        // Country where movie was produced
-        console.log(country.cyan);
-        // language of movie
-        console.log(language.cyan);
-        // plot of movie
-        console.log(plot.cyan);
-        // actors in movie
-        console.log(actors.cyan);
-        // Array to be added to log.txt
-        var movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
-        // adds output to log.txt
-        fs.appendFile('text/log.txt', ',' + movieDetails, function(err){
-            if (err) console.log(err);
-        });
-    })
-    .catch(function(err){
-        console.log(`Error: ${err}`);
-    });   
-}
-    
+       
 // Reads data from random.txt and displays info using this data as input
 function random() {
     // using fs package, call spotify-this-song on data in random.txt
@@ -225,11 +126,6 @@ function getData() {
             dataArr.forEach(item => console.log(item.yellow));
         }
     });
-}
-
-// Generates random quote
-function getQuote() {
-    require('owl-wisdom');
 }
 
 // Translates input
