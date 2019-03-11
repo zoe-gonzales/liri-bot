@@ -1,6 +1,6 @@
 
 // getting api keys
-var keys = require("./keys.js");
+var keys = require("./keys");
 var fs = require('fs');
 require('colors');
 

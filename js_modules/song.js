@@ -1,7 +1,7 @@
 
 // Node packages/api key & secret
 var Spotify = require('node-spotify-api');
-var keys = require("./keys.js");
+var keys = require("./keys");
 var spotify = new Spotify(keys.spotify);
 var fs = require('fs');
 var moment = require('moment');

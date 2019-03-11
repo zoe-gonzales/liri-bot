@@ -3,15 +3,15 @@
 var dotenv = require('dotenv');
 dotenv.config({path: './.env'});
 var fs = require('fs');
-var axios = require('axios');
 var inquirer = require('inquirer');
 require('colors');
 
 // requiring constructors
-var Translator = require('./translator');
-var Concerts = require('./concerts');
-var Song = require('./song');
-var Movie = require('./movie');
+var Translator = require('./js_modules/translator');
+var Concerts = require('./js_modules/concerts');
+var Song = require('./js_modules/song');
+var Movie = require('./js_modules/movie');
+var SavedData = require('./js_modules/savedData');
 
 // User input is saved to global variables
 var request;
@@ -70,29 +70,26 @@ function liri() {
             movie.validateQueryURL();
             movie.searchMovie();
         break;
-        // do-what-it-says
         case 'do-what-it-says':
             random();
         break;
-        // return all data
-        case 'info-saved':
-            getData();
+        case 'info-saved': // returns all saved search results
+            var data = new SavedData();
+            data.getSavedData();
         break;
-        // return random quote
         case 'get-random-quote':
             require('owl-wisdom'); // Generates random quote
         break;
-        // get translation of input
         case 'translate-this':
-            getTranslation();
+            getTranslation(); // gets translation of input
         break;
     }
 }
-       
+
 // Reads data from random.txt and displays info using this data as input
 function random() {
     // using fs package, call spotify-this-song on data in random.txt
-    fs.readFile('text/random.txt', 'utf8', function(err, data) {
+    fs.readFile('./text/random.txt', 'utf8', function(err, data) {
         if (err) throw err; // checking for error
         // save data to array split on the ,'s
         var dataArr = data.split(',');
@@ -109,24 +106,9 @@ function random() {
                 input = dataArr[i + 1];
             }
         }
-        // Reruns Liri with the values from random.txt
         liri();
     });
-}
-
-// Retrieves and displays all data saved in log.txt
-function getData() {
-    fs.readFile('text/log.txt', 'utf8', function(err, data){
-        if (err) throw err;
-        if (!data) {
-            console.log('\nSorry, no data could be found.\n'.magenta);
-        } else {
-            console.log('\nHere is your requested data:\n'.magenta);
-            var dataArr = data.split(',');
-            dataArr.forEach(item => console.log(item.yellow));
-        }
-    });
-}
+};
 
 // Translates input
 function getTranslation() {
