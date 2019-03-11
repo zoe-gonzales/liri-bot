@@ -2,6 +2,7 @@
 // getting api keys
 var keys = require("./keys.js");
 var fs = require('fs');
+require('colors');
 
 // Code for handling watson language translator data
 var LanguageTranslatorV3 = require('watson-developer-cloud/language-translator/v3');

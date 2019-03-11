@@ -7,11 +7,12 @@ var fs = require('fs');
 var axios = require('axios');
 var moment = require('moment');
 var inquirer = require('inquirer');
-require('colors');
 var Spotify = require('node-spotify-api');
+require('colors');
 
-// requiring Translator constructor
+// requiring constructors
 var Translator = require('./translator');
+var Concerts = require('./concerts');
 
 // Spotify keys
 var spotify = new Spotify(keys.spotify);
@@ -60,7 +61,9 @@ function liri() {
     switch (request) {
         // concert-this
         case 'concert-this':
-            getConcert();
+            var concert = new Concerts(input);
+            concert.getQueryURL();
+            concert.axiosConcerts();
         break;
         // spotify-this-song
         case 'spotify-this-song':
@@ -86,69 +89,7 @@ function liri() {
         case 'translate-this':
             getTranslation();
         break;
-        default:
-            return;
-        break;
     }
-}
-
-// Calls to BandsInTown API, displays data, and appends data to log.txt
-function getConcert() {
-    
-    var queryURL = `https://rest.bandsintown.com/artists/${input}/events?app_id=codingbootcamp`;
-
-    // Conditional controls for if there is no user input
-    if (!input) queryURL = `https://rest.bandsintown.com/artists/unknown+mortal+orchestra/events?app_id=codingbootcamp`;
-
-    // axios call to BandsInTown API
-    axios.get(queryURL)
-    .then(function(response){
-        var concerts = response.data;
-        if (!input) {
-            console.log(`\nHere are some upcoming concerts for Unknown Mortal Orchestra:\n`.magenta);
-        } else {
-            console.log(`\nHere are some upcoming concerts for ${input}:\n`.magenta);
-        }
-        concerts.forEach(concert => {
-            var artist = concert.lineup[0];
-            var headline = `${artist} at ${concert.venue.name}`;
-            var url = concert.url;
-            // Name of Venue
-            console.log(headline.green);
-            // Venue location
-            var location = '';
-            if (concert.venue.region) {
-                // For locations in US
-                location = `Location: ${concert.venue.city} ~ ${concert.venue.region}`;
-                console.log(location.cyan);
-            } else {
-                // International locations do not provide a region, so using country instead
-                location = `Location: ${concert.venue.city}, ${concert.venue.country}`;
-                console.log(location.cyan);
-            }
-            // Date of the event (using Moment in MM/DD/YYYY format)
-            var date = moment(concert.datetime).format('MMM D YYYY h:mm a');
-            console.log(`Date & Time (local): ${date}`.cyan);
-            // Link to event
-            console.log(`${url}\n`.cyan);
-
-            // Placing values into array for addition to log.txt
-            var concertDetails = [];
-            concertDetails.push(artist);
-            concertDetails.push(headline);
-            concertDetails.push(location);
-            concertDetails.push(date);
-            concertDetails.push(`${url}\n`);
-
-            // adds output to log.txt
-            fs.appendFile('text/log.txt', ', ' + concertDetails, function(err){
-                if (err) console.log(err);
-            });
-        });
-    })
-    .catch(function(error){
-        console.log(`Error: ${error}`);
-    });   
 }
     
 // Calls to Spotify API, displays data, and appends data to log.txt
