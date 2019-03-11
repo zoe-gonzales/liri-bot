@@ -7,7 +7,7 @@ var fs = require('fs');
 var axios = require('axios');
 var moment = require('moment');
 var inquirer = require('inquirer');
-var colors = require('colors');
+require('colors');
 var Spotify = require('node-spotify-api');
 
 // Spotify keys
