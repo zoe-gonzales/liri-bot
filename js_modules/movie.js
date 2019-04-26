@@ -1,60 +1,40 @@
 
-var fs = require('fs');
-var axios = require('axios');
+const fs = require('fs');
+const axios = require('axios');
 require('colors');
 
-// Calls to OMDB API, displays data, and appends data to log.txt
-function Movie(input) {
-    this.queryURL = '';
-    this.validateQueryURL = function(){
+class Movie {
+    constructor(input){
         this.queryURL = `http://www.omdbapi.com/?apikey=trilogy&t=${input}`;
-        // Conditional controls for if there is no user input
-        if (!input) this.queryURL = "http://www.omdbapi.com/?apikey=trilogy&t=am%C3%A9lie";
-    };
-    this.searchMovie = function(){
+    }
+
+    searchMovie(){
         // axios call to OMDB API
         axios.get(this.queryURL)
-        .then(function(response){
+        .then(response => {
 
-            var title = response.data.Title;
-            var year = `Released in: ${response.data.Year}`;
-            var director = `Directed by: ${response.data.Director}`;
-            var imdb = `${response.data.Ratings[0].Source} rating: ${response.data.Ratings[0].Value}`;
-            var rottenTomato = `${response.data.Ratings[1].Source} rating: ${response.data.Ratings[1].Value}`;
-            var country = `Produced in: ${response.data.Country}`;
-            var language = `Language(s): ${response.data.Language}`;
-            var plot = `Plot: ${response.data.Plot}`;
-            var actors = `Featuring: ${response.data.Actors}\n`;
+            let title = response.data.Title;
+            let year = `Released in: ${response.data.Year}`;
+            let director = `Directed by: ${response.data.Director}`;
+            let imdb = `${response.data.Ratings[0].Source} rating: ${response.data.Ratings[0].Value}`;
+            let rottenTomato = `${response.data.Ratings[1].Source} rating: ${response.data.Ratings[1].Value}`;
+            let country = `Produced in: ${response.data.Country}`;
+            let language = `Language(s): ${response.data.Language}`;
+            let plot = `Plot: ${response.data.Plot}`;
+            let actors = `Featuring: ${response.data.Actors}\n`;
 
             console.log(`\nHere are some details for ${title}:\n`.magenta);
             // Title
-            console.log(`Movie title: ${title}`.cyan);
-            // Release year
-            console.log(year.cyan);
-            // Director
-            console.log(director.cyan);
-            // IMDB Rating
-            console.log(imdb.cyan);
-            // Rotten tomatoes rating
-            console.log(rottenTomato.cyan);
-            // Country where movie was produced
-            console.log(country.cyan);
-            // language of movie
-            console.log(language.cyan);
-            // plot of movie
-            console.log(plot.cyan);
-            // actors in movie
-            console.log(actors.cyan);
+            console.log(`Movie title: ${title} \n${year} \n${director} \n${imdb} \n${rottenTomato} \n${country} \n${language} \n${plot} \n${actors}`.cyan);
+
             // Array to be added to log.txt
-            var movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
+            const movieDetails = [title, year, director, imdb, rottenTomato, country, language, plot, actors];
             // adds output to log.txt
-            fs.appendFile('text/log.txt', ',' + movieDetails, function(err){
+            fs.appendFile('text/log.txt', ',' + movieDetails, err => {
                 if (err) console.log(err);
             });
         })
-        .catch(function(err){
-            console.log(`Error: ${err}`);
-        }); 
+        .catch(err => console.log(`Error: ${err}`)); 
     }   
 }
 

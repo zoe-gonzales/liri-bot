@@ -1,21 +1,20 @@
 
 // Node package imports
-var dotenv = require('dotenv');
+const dotenv = require('dotenv');
 dotenv.config({path: './.env'});
-var fs = require('fs');
-var inquirer = require('inquirer');
+const fs = require('fs');
+const inquirer = require('inquirer');
 require('colors');
 
 // requiring constructors
-var Translator = require('./js_modules/translator');
-var Concerts = require('./js_modules/concerts');
-var Song = require('./js_modules/song');
-var Movie = require('./js_modules/movie');
-var SavedData = require('./js_modules/savedData');
+const Translator = require('./js_modules/translator');
+const Concerts = require('./js_modules/concerts');
+const Song = require('./js_modules/song');
+const Movie = require('./js_modules/movie');
+const SavedData = require('./js_modules/savedData');
 
 // User input is saved to global variables
-var request;
-var input;
+let request;
 
 // Runs immediately
 inquirer
@@ -26,13 +25,21 @@ inquirer
         choices: ['concert-this', 'spotify-this-song', 'movie-this', 'do-what-it-says', 'info-saved', 'get-random-quote', 'translate-this'],
         name: 'request'
     }]
-).then(function(inquirerResponse) {
+).then(inquirerResponse => {
     request = inquirerResponse.request;
-    if (request === 'concert-this' || request === 'spotify-this-song' || request === 'movie-this') {
-        promptSearchTerm();
-    } else if (request === 'translate-this') {
-        getTranslation();
-    } else liri();
+    switch (request){
+        case 'concert-this':
+        case 'spotify-this-song':
+        case 'movie-this':
+            promptSearchTerm();
+        break;
+        case 'translate-this':
+            getTranslation();
+        break;
+        default:
+            liri();
+        break;
+    }
 });
 
 // Runs only if user selects to search concerts, songs, or movies - prompts for search term
@@ -45,36 +52,36 @@ function promptSearchTerm() {
             name: 'searchTerm'
         }
     )
-    .then(function(inquirerResponse){
-        input = inquirerResponse.searchTerm;
-        liri();
+    .then(inquirerResponse => {
+        let input = inquirerResponse.searchTerm;
+        liri(input);
     });
 }
 
 // Controls the flow of running functions based on the user's request
-function liri() {
+function liri(input) {
     // Switch statement identifies request, determines action to be taken
     switch (request) {
         case 'concert-this':
-            var concert = new Concerts(input);
-            concert.getQueryURL();
+            if (!input) input = 'Unknown Mortal Orchestra';
+            let concert = new Concerts(input);
             concert.axiosConcerts();
         break;
         case 'spotify-this-song':
-            var song = new Song(input);
-            song.validateInput();
+            if (!input) input = 'No Scrubs';
+            let song = new Song(input);
             song.searchSong();
         break;
         case 'movie-this':
-            var movie = new Movie(input);
-            movie.validateQueryURL();
+            if (!input) input = 'am%C3%A9lie';
+            let movie = new Movie(input);
             movie.searchMovie();
         break;
         case 'do-what-it-says':
             random();
         break;
         case 'info-saved': // returns all saved search results
-            var data = new SavedData();
+            let data = new SavedData();
             data.getSavedData();
         break;
         case 'get-random-quote':
@@ -90,17 +97,17 @@ function liri() {
 function random() {
     // using fs package, call spotify-this-song on data in random.txt
     fs.readFile('./text/random.txt', 'utf8', function(err, data) {
-        if (err) throw err; // checking for error
-        // save data to array split on the ,'s
-        var dataArr = data.split(',');
-        // Generates random number that will identify the index of the request
-        var randomNumIndex = Math.floor(Math.random() * 5);
+        if (err) throw err;
+        let dataArr = data.split(',');
+
+        // Random index generated
+        let randomNumIndex = Math.floor(Math.random() * 5);
+
         // Accounts for odd indexes (since these contain values rather than commands)
-        if (randomNumIndex % 2 !== 0 && randomNumIndex !== 4) {
-            randomNumIndex++;
-        }
+        if (randomNumIndex % 2 !== 0 && randomNumIndex !== 4) randomNumIndex++;
+
         // Loops through data array and identifies the item in the array whose index matches the random index
-        for (var i=0; i < dataArr.length; i++) {
+        for (let i=0; i < dataArr.length; i++) {
             if (i === randomNumIndex) {
                 request = dataArr[i];
                 input = dataArr[i + 1];
@@ -112,7 +119,7 @@ function random() {
 
 // Translates input
 function getTranslation() {
-    var translator = new Translator();
+    let translator = new Translator();
     // prompts whether user wants to translate to or from english
     inquirer
     .prompt({
@@ -120,7 +127,7 @@ function getTranslation() {
         message: 'Translate:',
         choices: ['to English', 'from English'],
         name: 'languageChoice'
-    }).then(function(reply){
+    }).then(reply => {
         if (reply.languageChoice === 'from English') {
             inquirer
             .prompt([
@@ -135,9 +142,9 @@ function getTranslation() {
                     name: 'language'
                 }, 
             ]).then(function(reply){
-                // sets arguments for translate() to the input - gets WLT code for language to translate to
-                var langOne = 'en';
-                var langTwo = translator.findLangCode(reply.language);
+                // sets arguments for translate() to the input - gets WLT code for translation
+                let langOne = 'en';
+                let langTwo = translator.findLangCode(reply.language);
                 translator.translate(reply.text, langOne, langTwo);
             });
         } else {
@@ -153,10 +160,10 @@ function getTranslation() {
                     name: 'text',
                     message: 'Text to translate:'
                 },
-            ]).then(function(reply){
+            ]).then(reply => {
                 // sets arguments for translate() to the input - gets code for language to translate from
-                var langOne = translator.findLangCode(reply.langOne);
-                var langTwo = 'en';
+                let langOne = translator.findLangCode(reply.langOne);
+                let langTwo = 'en';
                 translator.translate(reply.text, langOne, langTwo);
             });
         }

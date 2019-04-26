@@ -1,64 +1,51 @@
 
-var fs = require('fs');
-var moment = require('moment');
-var axios = require('axios');
+const fs = require('fs');
+const moment = require('moment');
+const axios = require('axios');
 require('colors');
 
-function Concerts(input) {
-    this.queryURL = '';
-    this.getQueryURL = function(){
-        this.queryURL = `https://rest.bandsintown.com/artists/${input}/events?app_id=codingbootcamp`;
+class Concerts {
+    constructor(input){
+        this.input = input;
+        this.queryURL = `https://rest.bandsintown.com/artists/${this.input}/events?app_id=codingbootcamp`;
+    }
 
-        // Conditional controls for if there is no user input
-        if (!input) this.queryURL = `https://rest.bandsintown.com/artists/unknown+mortal+orchestra/events?app_id=codingbootcamp`;
-    };
-    // Calls to BandsInTown API, displays data, and appends data to log.txt
-    this.axiosConcerts = function(){
+    axiosConcerts(){
         // axios call to BandsInTown API
         axios.get(this.queryURL)
-        .then(function(response){
-            var concerts = response.data;
-            if (!input) {
-                console.log(`\nHere are some upcoming concerts for Unknown Mortal Orchestra:\n`.magenta);
-            } else {
-                console.log(`\nHere are some upcoming concerts for ${input}:\n`.magenta);
-            }
-            concerts.forEach(concert => {
-                var artist = concert.lineup[0];
-                var headline = `${artist} at ${concert.venue.name}`;
-                var url = concert.url;
+        .then(response => {
+            let concerts = response.data;
+            console.log(`\nHere are some upcoming concerts for ${this.input}:\n`.magenta);
+            
+            concerts.map(concert => {
+                let artist = concert.lineup[0];
                 // Name of Venue
-                console.log(headline.green);
+                let headline = `${artist} at ${concert.venue.name}`;
                 // Venue location
-                var location = '';
-                if (concert.venue.region) {
-                    // For locations in US
-                    location = `Location: ${concert.venue.city} ~ ${concert.venue.region}`;
-                    console.log(location.cyan);
-                } else {
-                    // International locations do not provide a region, so using country instead
-                    location = `Location: ${concert.venue.city}, ${concert.venue.country}`;
-                    console.log(location.cyan);
-                }
+                let location = '';
+                // For locations in US
+                if (concert.venue.region) location = `${concert.venue.city} ${concert.venue.region}`;
+                // International locations do not provide a region, so using country instead
+                else location = `${concert.venue.city}, ${concert.venue.country}`;
                 // Date of the event (using Moment in MM/DD/YYYY format)
-                var date = moment(concert.datetime).format('MMM D YYYY h:mm a');
-                console.log(`Date & Time (local): ${date}`.cyan);
-                // Link to event
-                console.log(`${url}\n`.cyan);
+                let date = moment(concert.datetime).format('MMM D YYYY h:mm a');
+                // Link to event on BandsInTown.com
+                let url = concert.url;
 
+                // Print to console.
+                console.log(`${headline.green} \n Location: ${location.cyan} \n Date & Time (local): ${date.cyan} \n ${url.cyan}\n`);
+                
                 // Placing values into array for addition to log.txt
-                var concertDetails = [];
+                const concertDetails = [];
                 concertDetails.push(artist, headline, location, date, `${url}\n`);
 
                 // adds output to log.txt
-                fs.appendFile('text/log.txt', ', ' + concertDetails, function(err){
+                fs.appendFile('text/log.txt', ', ' + concertDetails, err => {
                     if (err) console.log(err);
                 });
             });
         })
-        .catch(function(error){
-            console.log(`Error: ${error}`);
-        }); 
+        .catch(error => console.log(`Error: ${error}`)); 
     }
 }
 
